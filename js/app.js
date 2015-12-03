@@ -10,7 +10,7 @@
 var allFeeds = [
     {
         name: 'Udacity Blog',
-        url: 'http://blog.udacity.com/feeds/posts/default?alt=rss'
+        url: 'http://blog.udacity.com/feed'
     }, {
         name: 'CSS Tricks',
         url: 'http://css-tricks.com/feed'
@@ -20,7 +20,14 @@ var allFeeds = [
     }, {
         name: 'Linear Digressions',
         url: 'http://feeds.feedburner.com/udacity-linear-digressions'
-    }
+    },{
+        name: 'Bad Feed Reader',
+        url: 'http://somerandomaddress.com'
+    },
+    {
+        name: 'Yet Another Bad Feed',
+        url: 'http://yetsomerandomaddress.com'
+    },
 ];
 
 /* This function starts up our application. The Google Feed
@@ -29,6 +36,7 @@ var allFeeds = [
  */
 function init() {
     // Load the first feed we've defined (index of 0).
+
     loadFeed(0);
 }
 
@@ -43,7 +51,8 @@ function init() {
 function loadFeed(id, cb) {
     var feedUrl = allFeeds[id].url,
         feedName = allFeeds[id].name,
-        feed = new google.feeds.Feed(feedUrl);
+        feed = new superfeedr.Feed(feedUrl);
+        //feed = new google.feeds.Feed(feedUrl);
 
     /* Load the feed using the Google Feed Reader API.
      * Once the feed has been loaded, the callback function
@@ -83,8 +92,11 @@ function loadFeed(id, cb) {
 /* Google API: Loads the Feed Reader API and defines what function
  * to call when the Feed Reader API is done loading.
  */
-google.load('feeds', '1');
-google.setOnLoadCallback(init);
+
+superfeedr.auth('JonathanPCGuy', 'd4346b33a4d29a056ac025da3d21f362');
+superfeedr.setOnLoadCallback(init);
+//google.load('feeds', '1');
+//google.setOnLoadCallback(init);
 
 /* All of this functionality is heavily reliant upon the DOM, so we
  * place our code in the $() function to ensure it doesn't execute
@@ -128,4 +140,5 @@ $(function() {
     menuIcon.on('click', function() {
         $('body').toggleClass('menu-hidden');
     });
+
 }());
