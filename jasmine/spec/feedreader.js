@@ -8,65 +8,130 @@
  * since some of these tests may require DOM elements. We want
  * to ensure they don't run until the DOM is ready.
  */
+
 $(function() {
-    /* This is our first test suite - a test suite just contains
-    * a related set of tests. This suite is all about the RSS
-    * feeds definitions, the allFeeds variable in our application.
-    */
+    // I had to increase the timeout to be huge because the replacement api (superfeedr)
+    // sometime takes a long time to complete
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 45000;
+
     describe('RSS Feeds', function() {
-        /* This is our first test - it tests to make sure that the
-         * allFeeds variable has been defined and that it is not
-         * empty. Experiment with this before you get started on
-         * the rest of this project. What happens when you change
-         * allFeeds in app.js to be an empty array and refresh the
-         * page?
-         */
         it('are defined', function() {
             expect(allFeeds).toBeDefined();
             expect(allFeeds.length).not.toBe(0);
         });
 
+        it('should not have a non-empty URL object', function() {
+           allFeeds.forEach(function(singleFeed) {
+               expect(singleFeed.url).toBeDefined();
+               expect(singleFeed.url.length).not.toBe(0);
+           }, this);
+        });
 
-        /* TODO: Write a test that loops through each feed
-         * in the allFeeds object and ensures it has a URL defined
-         * and that the URL is not empty.
-         */
-
-
-        /* TODO: Write a test that loops through each feed
-         * in the allFeeds object and ensures it has a name defined
-         * and that the name is not empty.
-         */
+        it('should have a defined non-empty name', function() {
+           allFeeds.forEach(function(singleFeed) {
+               expect(singleFeed.name).toBeDefined();
+               expect(singleFeed.name.length).not.toBe(0);
+           }, this);
+        });
     });
 
+    describe('The menu', function() {
 
-    /* TODO: Write a new test suite named "The menu" */
+        it('should be hidden by default', function() {
+           var hiddenMenu = $('.menu-hidden .menu');
+           expect(hiddenMenu.length).toBe(1);
+        });
 
-        /* TODO: Write a test that ensures the menu element is
-         * hidden by default. You'll have to analyze the HTML and
-         * the CSS to determine how we're performing the
-         * hiding/showing of the menu element.
-         */
+        it('should be shown when clicked and hidden when clicked again.', function() {
+           var menuIcon = $('.menu-icon-link');
+           var theActualMenu = $('.menu');
+           // to verify visibility we look at the parents nodes for the presence of any element with the class .menu-hidden
+           expect(theActualMenu.parents('.menu-hidden').length).toBe(1);
+           menuIcon.trigger('click');
+           expect(theActualMenu.parents('.menu-hidden').length).toBe(0);
+           menuIcon.trigger('click');
+           expect(theActualMenu.parents('.menu-hidden').length).toBe(1);
+        });
+    });
 
-         /* TODO: Write a test that ensures the menu changes
-          * visibility when the menu icon is clicked. This test
-          * should have two expectations: does the menu display when
-          * clicked and does it hide when clicked again.
-          */
+    describe('Initial Entries', function() {
+        beforeEach(function(done) {
+            loadFeed(0, function() {
+               done();
+            });
+        });
 
-    /* TODO: Write a new test suite named "Initial Entries" */
+        it('should have at least one entry available', function(done) {
+            expect($('.feed .entry').length).toBeGreaterThan(0);
+            done();
+        });
+    });
 
-        /* TODO: Write a test that ensures when the loadFeed
-         * function is called and completes its work, there is at least
-         * a single .entry element within the .feed container.
-         * Remember, loadFeed() is asynchronous so this test wil require
-         * the use of Jasmine's beforeEach and asynchronous done() function.
-         */
+    describe('New Feed Selection', function() {
+        var feedSelector = '.feed .entry';
+        var previousEntries = [];
+        var newEntries = [];
 
-    /* TODO: Write a new test suite named "New Feed Selection"
+        var oldTimeout;
 
-        /* TODO: Write a test that ensures when a new feed is loaded
-         * by the loadFeed function that the content actually changes.
-         * Remember, loadFeed() is asynchronous.
-         */
+        beforeAll(function() {
+           oldTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+           jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+        });
+
+        // load one feed, then when that's done read in the entries, then load in the second feed and read those entries
+        beforeEach(function(done) {
+            loadFeed(0, function() {
+                var previousVal = $(feedSelector);
+                previousVal.each(function() {
+                    previousEntries.push($(this).html());
+                });
+                loadFeed(1, function() {
+                    var newVal = $(feedSelector);
+                    newVal.each(function() {
+                        newEntries.push($(this).html());
+                    });
+
+                    // since the second feed has been loaded and processed, now we can move forward with the spec
+                    done();
+                });
+            });
+        });
+
+        it('should actually result in content changing', function(done) {
+            // look at the values retrieved, they should not be the same
+            newEntries.forEach(function(value, index) {
+                expect(value === previousEntries[index]).toBe(false);
+            });
+            done();
+        });
+
+        afterAll(function() {
+           jasmine.DEFAULT_TIMEOUT_INTERVAL = oldTimeout;
+        });
+    });
+
+    // below are specs for features that can be added in the future, but are not yet implemented; thus they will fail
+    // Later on we'll have a social media "Share" functionality added for each RSS entry
+    describe('Share feed entry', function() {
+
+        beforeAll(function(done) {
+            loadFeed(0, function() {
+                done();
+            });
+        });
+
+        it('dialog should pop up when the share functinality is activated', function() {
+             var shareWindow = $('.share-dialog');
+             expect(shareWindow.parents('.share-hidden').length).toBe(1);
+             var feedEntryShare = $('.feed .entry .share')[0];
+             feedEntryShare.trigger('click');
+             expect(shareWindow.parents('.share-hidden').length).toBe(0);
+        });
+
+        it('should have at least one social network option available in the backend', function() {
+            var shareItem = new ShareHelper();
+            expect(shareItem.socialNetworks.length).toBeGreaterThan(0);
+        });
+    });
 }());

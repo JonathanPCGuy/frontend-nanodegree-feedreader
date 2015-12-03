@@ -1,0 +1,3 @@
+http://stackoverflow.com/questions/17084839/check-if-any-ancestor-has-a-class-using-jquery
+-Used to verify a window is visible by checking the parent doms for the presence of a certain class.
+
