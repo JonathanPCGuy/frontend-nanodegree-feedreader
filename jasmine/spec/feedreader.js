@@ -61,9 +61,8 @@ $(function() {
             });
         });
 
-        it('should have at least one entry available', function(done) {
+        it('should have at least one entry available', function() {
             expect($('.feed .entry').length).toBeGreaterThan(0);
-            done();
         });
     });
 
